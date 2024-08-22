@@ -15,7 +15,7 @@ ja:
         name: 名称
         description: 詳しい説明
         created_at: 登録日時
-        update_at: 更新日時
+        updated_at: 更新日時
       user:
         id: ID
         name: 名前
@@ -24,7 +24,7 @@ ja:
         passeord: パスワード 
         passeord_confirmation: パスワード(確認用)
         created_at: 登録日時
-        update_at: 更新日時
+        updated_at: 更新日時
     
   date:
     abbr_day_names:
@@ -138,7 +138,7 @@ ja:
     submit:
       create: 登録する
       submit: 保存する
-      update: 更新する
+      updated: 更新する
   number:
     currency:
       format:
