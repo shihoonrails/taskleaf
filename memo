@@ -1,0 +1,98 @@
+db関連
+・schema.rb 
+マイグレートすると自動出力される
+マイグレートミスったときは、データベースから消した後にマイグレーションファイルを削除する →整合性が保てなくなる
+
+・コマンド
+bin/rails db:migrate 最新までマイグレーションを適用
+bin/rails db:migrate VERSION = 138254765843 特定バージョンまでマイグレーションが適用された状態にする
+bin/rails db:rollback バージョンを１つ戻す
+bin/rails db:rollback STEP=2 ばーじょんを指定したステップ数だけ戻す
+
+・データ型
+:bloolean 真偽値
+:integer 符号付き整数
+:float 浮動小数点数
+:string 文字列（※短い文字列）
+:text 文字列（※長い文字列）
+:date 日付
+:datetime 日時
+
+・NOT NULL制約
+データベースのカラムの値としてNULLを格納する必要がないときに物理的にNULLを保存できないようにする
+
+・バリデーション（validates）
+validates :foo, presence: true 必要なデータが入っているか？
+validates :foo, numericality: true 数値を期待しているところに数値以外が入っていないか？小数点の有無・正負などが期待通りの数値か？
+validates :foo, inclusion: { in: 0..9 } 数値gはにが期待通りか？
+validates :foo, length: { maximum: 30 } 文字列の長さが規定通りか？
+validates :foo, format: { with: 正規表現 }
+validates :foo, inclusion: { in: %w(OK NG) }
+validates :foo, uniquness: true
+validates :foo, confirmation: true 
+
+before_validation 検証前の値の正規化
+after_validation 検証結果(エラーメッセージ)の加工
+before_save before_create before_update saveのために裏側で行いたいデータ準備を行う（ある属性の値に従ってある関連(後述)を作成するなど。）検証エラーを出してもユーザーにはどうすることもできない状態以上を防ぐために例外を出す。
+before_save before_create before_update そのモデルの状態に応じて他のモデルの状態を変えるなど連動した挙動を実現、検証エラーを出してもユーザーにはどうすることもできない状態異常を防ぐために例外を出す。
+before_destroy 削除してOKかをチェックし、ダメなら例外を出して防ぐ。
+after_destroy そのモデルの削除に応じて他のモデルの状態を変えるといった連動した挙動を実現
+
+・メソッド
+save save! オブジェクトの現状通りに登録・更新を行う
+update update! update_attributes update_attributes! 変更内容を引数で指定して更新を行う。save save!を更新用途に便利にしたもの
+update_attributes １つの属性の変更を行う。検証は行わないがその他の点はsaveと同様
+update_column update_columns 変更内容を引数で指定→更新 モデルに実装された検証やコールバックなどを実行せず直接的に更新SQLを実行
+create create! オブジェクトを生成してsave/save!を実行
+update_all 更新SQLを実行。検証やコールバックは実行されない
+
+・パスワード
+has_secure_password パスワード属性が追加される。ユーザーが入力した生のパスワードを一時的に格納されるための属性
+ #コンソール
+    > User.new(name: 'ユーザー', email: 'sample@example.com', password: 'password', password_confirmation: 'password')
+    > user.save
+    > user.password_digest "$2a$12$mClDtUYQGavR5nJM80w9K.lBSgO3wXtZGFpvI.XmOkuBhzSdFcsQC"
+
+・一般的なCLUD機能(Admin::UsersController)
+/admin/users/new get new 新規登録画面
+/admin/users post create 登録
+/admin/users/17/edit get edit 編集画面
+/admin/users/17 patch,put update 更新
+/admin/users get index 一覧
+/admin/users/17 get show 詳細
+/admin/users/17 delete destroy 削除
+
+・絞り込み条件
+where 
+order 検索結果の並び順を指定
+joins 
+group
+select
+limit 取得個数を制限する
+distinct
+all 何もしない検索条件。
+none 何もヒットしない検索条件。
+
+・実行部分
+find idを指定してレコードを取得
+find_by 条件を指定して見つかったレコードを一件取得する
+first 検索条件に合う最初のレコードに対応するオブジェクトを取得
+last 検索条件に合う最後のレコードに対応するオブジェクトを取得
+exist? 検索条件に合うレコードの有無を取得する
+count レコード数
+average 平均取得
+maximum 最大値
+minimum 最小値
+update_all 検索条件に合うレコードを全てインスタンス化せずに更新
+delete_all 検索条件に合うレコードを全てインスタンス化せずに削除
+destroy_all 検索条件に合うレコードを全てインスタンス化した上でdestroyメソッドを通じて削除
+
+
+・リッジポール
+マイグレーションファイルを無しにschema.rbを元にマイグレートする便利なやつ
+
+・トランザクション
+一連の複数の処理によるデータベースの整合性を保つための機能。
+
+
+
