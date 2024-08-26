@@ -94,5 +94,86 @@ destroy_all 検索条件に合うレコードを全てインスタンス化し�
 ・トランザクション
 一連の複数の処理によるデータベースの整合性を保つための機能。
 
+RESTful 
+HTTPリクエストはそのリクエストで必要な情報を全て持ち、前のリクエストからの場外が保存されている必要が無い（ステートレス）
+個々の情報（リソース）への操作の表現がHTTPメソッドとして統一されている
+個々の情報（リソース）がそれぞれ一意なURLで表す
+ある情報（リソース）から別の情報を参照したいときはリンクを利用
+
+routs.rb
+    scope... URL回送（:path）,モジュール（:module）,URLパターン名のプリフィックス（:as）などをオプションに指定することでブロック内の定義にまとめて一定の制約をかける
+     モデル>>データベースからデータを取ってくる時に制約をかける。汎用性などによってコントローラーで制約をかけることもある。
+     gsub 置換する
+    namespace... URL階層、モジュール、URLパターン名に一括で一定の制約をかける（scope）と違い、一括のため
+
+    ; HTTPメソッド サーバーへのリクエストの際に指定・情報の送信・取得方法を表す
+    ; URLパターン URLそのものや:idのように一部の任意の文字が入るようなパターン
+    ; URLパターン 定義したURLパターンごとに一意のなまえ　この名前を元にヘルパーメソッドが用意される
+    ; コントローラー 呼び出したいアクションのコントローラークラスを指定
+    ; アクション 呼び出したいアクションを指定
+
+    ; get '/login', to: 'sessions#new' getメソッド '/login' URLに対してリクエスト SessionsControllerのnewアクションを呼び出す。'/login'URLをヘルパーメソッドで生成できるようにする
+    ; URLヘルパーメソッドを使う理由 "/tasks"といった文字列を直接記述・{ controller: :tasks, action: :index } といったハッシュを利用・URLヘルパーメソッドを利用
+
+    ; ※インサート文をgptで聞くのもいいけど、内容を全部理解した上で記述する！！
+
+日本時間を見る
+; config.time_zone = "Asia/Tokyo"
+; railsコンソールでは $Time.current
+
+開発環境で本番用のエラー画面
+    confi/environments/development.rb
+    config.log_level = :warn  warn以上のログ出力
+    メソッド
+        rescue_from 
+
+ログ出力 
+    logger.debug "task: #{@task.attributes.inspect}" etc..
+
+    ログレベル メソッド呼び出し例
+        5    logger.unknown    '不明なエラー'    
+        4   logger.fatal    '致命的なエラー'
+        3    logger.error    'エラー'
+        2    logger.warn    '警告'
+        1    logger.info    'お知らせ'
+        0    logger.debug    'デバッグ'
+
+セキュリティ
+    アプリケーションログの特定パラメータ値を隠して出力する設定
+        /Users/nakanoshiho/Downloads/taskleaf/config/initializers/filter_parameter_logging.rb
+
+    Strong Parameters
+        ホワイトリスト形式/ コントローラーでリクエストパラメーターを受け取る時に想定通りのパラメーターかどうかをチェックする機能
+    CSRF対策
+        CSRF ユーザーがログインしているwebアプリケーション悪意ある操作を行う攻撃（別のサイト上に用意したコンテンツのリンクを踏んだり画像表示下したことをきっかけ）
+        Ajaxリクエスト = JavascriptによってPOSTメソッドでサーバーにリクエスト（トークン出力...csrf_meta_tagsヘルパー）
+    インジェクション
+        webアプリケーションに悪意のあるスクリプトやパラメータを入力しそれが評価される時の権限で実行させる攻撃（ユーザーがデータを入力可能なところ全てが攻撃の対象）
+        ・XSSインジェクション ユーザーに表示するコンテンツに悪意のあるスクリプト（js）を仕掛けそのコンテンツを表示したユーザーにスクリプトを実行させることで任意の操作を行う攻撃※Cookieの読み書きも行える 
+            → railsではユーザーの入力した文字列を出力数さいに自動的にHTMLをエスケープする（「&」「""「<」「>」は無害なHTML表現形式「&amp;」「&quot:」「&lt;」「&gt;」に置き換えられる）
+        ・RUBYインジェクション ※ユーザーからの入力をそのままsendに渡さない
+            例//
+                ✖️ users = User.send(params[:scope]) 
+                ⚪︎ ユーザー入力をcase式などで切り分ける or 
+                    rais "Invilid scope! #{params[:scope]}" if whitelist.exclude?(params[:scope])
+                    users = User.send(params[:scope])
+        ・コマンドラインインジェクション
+        ・SQLインジェクション 「Where」メソッドなどActiveRecordのいくつかのクエリメソッドはSQL文字列を直接渡して条件指定することができる（データ入力時に悪意のあるSQLを入力することで攻撃）
+            → SQL文字列にユーザーが入力した値を直接埋め込めないようにする
+            例//
+                ✖️ users = User.where("name: 'params[:name]'").map(&:email) → SELECT "users". * FROM "users" WHERE (users. '' OR '1') --)
+                ⚪︎ users = User.where(name: params[:name]) → SELECT "users". * FROM "users" WHERE "users". "name" = $1 [["name", "' OR '1') --"]]
+                ◎ users = User.where('name = ?', params[:name]) → SELECT "users". * FROM "users" WHERE (name = ''' OR ''1'') --') それかActiveRecord::Baseのメソッドを使って直接的にSQLを実行できる
+    Content Security Policy （CSP）を設定
+        config/initializers/content_security_policy.rb のコメントアウト箇所
+
+    ActiveStorage::Blob 添付されたファイルに対応するモデル。ファイルの実態をデータベース外で管理→それ以外の情報、識別key、ファイル名、Content-Type、ファイルのメタデータ、サイズなどの管理
+    ActiveStorage::Attachment Blobとアプリ内のさまざまなモデルを関連つける中間テーブルに当たるモデル
+
+    selfの使い方を教えて欲しい具体例で クラス全体の中から何かを取り出す時に使う。特殊な変数の一種
+    self = task 
+    クラス内のselfはの呼び出し/インスタンスメソッド内のselfはそのメソッドが呼び出されたインスタンスを指す。インスタンス属性や他のインスタンスメソッドにアクセスできる
+    
+
 
 

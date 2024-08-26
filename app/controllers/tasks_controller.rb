@@ -1,7 +1,9 @@
 class TasksController < ApplicationController
   before_action :set_task, only: [:show, :edit, :update, :destroy]
+
   def index
-    @tasks = current_user.tasks.order(created_at: :desc)
+    @q = current_user.tasks.ransack(params[:q])
+    @tasks= @q.result(distinct: true)
   end
 
   def show
@@ -16,7 +18,11 @@ class TasksController < ApplicationController
     @task = current_user.tasks.new(task_params)
     
     if @task.save!
-      redirect_to tasks_url, notice: "タスク「#{@task.name}を登録しました。」"
+      # TaskMailer.creation_mail(@task).deliver_now
+      # redirect_to @task, notice: "タスク「#{@task.name}」を登録しました。"
+
+      logger.debug "task: #{@task.attributes.inspect}"
+      redirect_to @task, notice: "タスク「#{@task.name}」を登録しました。"
     else
       render :new
     end
@@ -41,7 +47,7 @@ class TasksController < ApplicationController
   private
 
   def task_params
-    params.require(:task).permit(:name, :description)
+    params.require(:task).permit(:name, :description, :image)
   end
 
   def set_task
