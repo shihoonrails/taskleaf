@@ -173,6 +173,16 @@ routs.rb
     selfの使い方を教えて欲しい具体例で クラス全体の中から何かを取り出す時に使う。特殊な変数の一種
     self = task 
     クラス内のselfはの呼び出し/インスタンスメソッド内のselfはそのメソッドが呼び出されたインスタンスを指す。インスタンス属性や他のインスタンスメソッドにアクセスできる
+
+    ページネーション
+        gem 'kaminari'
+        コントローラー
+            @task = @q.result(distinct: true).page(params[:page]).per(50)
+    sidekiq
+        実行日時の指定
+         SampleJob.set(wait_until: Date.tommrow.noon).perform_late →「翌日の正午」
+
+
     
 
 
