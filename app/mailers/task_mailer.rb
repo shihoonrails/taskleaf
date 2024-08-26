@@ -1,5 +1,5 @@
 class TaskMailer < ApplicationMailer
-  def creation_mail(task)
+  def creation_email(task)
     @task = task
     mail(
       subject: 'タスク作成完了メール',
